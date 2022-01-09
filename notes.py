@@ -1,54 +1,63 @@
-#! C:\Python39\python.exe
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import os
 import sys
 import json
 
-# load config file
-if not os.path.exists('./config.json'): 
-    print("config.json not found")
-    sys.exit(-1)
+def load_config():
+    # load config file
+    if not os.path.exists('./config.json'): 
+        print("config.json not found")
+        sys.exit(-1)
 
-with open('./config.json') as json_file:
-    config = json.load(json_file)
+    with open('./config.json') as json_file:
+        config = json.load(json_file)
+    return config
 
-number = 0
-# read command line argument and get the integer after the '-'
-if len(sys.argv) > 1:
-  number = int(sys.argv[1].split('-')[1])
-  if number < 1:
-    print("Please pass a positive integer for how many months back to get notes for.")
-    sys.exit(-1)
-    
-# Generate path for current month's notes
-basedir = config['baseDir']
-if not basedir:
-  basedir = "./"
+# how many months back based on command line argument
+def get_months_back():
+    number = 0
+    if len(sys.argv) > 1:
+      number = int(sys.argv[1].split('-')[1])
+      if number < 1:
+        print("Please pass a positive integer for how many months back to get notes for.")
+        sys.exit(-1)
+    return number
 
-date = datetime.now()
-# adjust date to subtract number of months
-date = date - relativedelta(months=number)
-filename = f"notes-{date.strftime('%Y-%m')}.md"
-fullpath = os.path.join(basedir, filename)
+# Get full path depending on months back and config's base dir
+def get_full_path_of_notes_file(config, number):
+    # Generate path for current month's notes
+    basedir = config['baseDir']
+    if not basedir:
+      basedir = "./"
 
-# Create root directory if doesn't exist
-if not os.path.exists(basedir):
-  print(f"Creating {basedir}")
-  os.mkdir(basedir)
-  
+    if not os.path.exists(basedir):
+      print(f"Creating {basedir}")
+      os.mkdir(basedir)
+      
+    date = datetime.now()
+    # adjust date to subtract number of months
+    date = date - relativedelta(months=number)
+    filename = f"notes-{date.strftime('%Y-%m')}.md"
+    fullpath = os.path.join(basedir, filename)
+    return fullpath
+
 # Create this month's log if doesn't exist
-if not os.path.exists(fullpath):
-  if number != 0:
-    print(f"A past log for {date.strftime('%Y-%m')} doesn't exist, exiting.")
-    sys.exit(-1)
-  print(f'{fullpath} does not exist, creating...')
-  with open(fullpath, 'w') as f:
-    pass
+def create_log_file_if_doesnt_exist(number, fullpath):
+    if not os.path.exists(fullpath):
+      if number != 0:
+        print(f"A past log at {fullpath} doesn't exist, exiting.")
+        sys.exit(-1)
+      print(f'{fullpath} does not exist, creating...')
+      with open(fullpath, 'w') as f:
+        pass
 
-# Open a new VSCode window
-os.system(f'code -n {fullpath}')
-sys.exit() 
+def main():
+  config = load_config()
+  number = get_months_back()
+  fullpath = get_full_path_of_notes_file(config, number)
+  create_log_file_if_doesnt_exist(number, fullpath)
+  os.system(f'code -n {fullpath}')
 
-
-
+if __name__ == "__main__":
+    main()
