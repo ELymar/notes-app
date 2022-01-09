@@ -3,6 +3,15 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import os
 import sys
+import json
+
+# load config file
+if not os.path.exists('./config.json'): 
+    print("config.json not found")
+    sys.exit(-1)
+
+with open('./config.json') as json_file:
+    config = json.load(json_file)
 
 number = 0
 # read command line argument and get the integer after the '-'
@@ -13,7 +22,10 @@ if len(sys.argv) > 1:
     sys.exit(-1)
     
 # Generate path for current month's notes
-basedir = r'C:\dev\notes'
+basedir = config['baseDir']
+if not basedir:
+  basedir = "./"
+
 date = datetime.now()
 # adjust date to subtract number of months
 date = date - relativedelta(months=number)
