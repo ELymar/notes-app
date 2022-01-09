@@ -10,7 +10,9 @@ def load_config():
         print("config.json not found")
         sys.exit(-1)
 
-    with open('./config.json') as json_file:
+    # config file relative to running script
+    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    with open(config_path) as json_file:
         config = json.load(json_file)
     return config
 
